@@ -1,0 +1,20 @@
+{
+	"name": "hapital-node-api",
+	"version": "1.0.0",
+	"description": "REST API for Hapital",
+	"main": "index.js",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"author": "Gustavo Delgado",
+	"license": "ISC",
+	"dependencies": {
+		"awilix": "^4.2.2",
+		"body-parser": "^1.19.0",
+		"bookshelf": "^0.10.3",
+		"express": "^4.15.3",
+		"knex": "^0.13.0",
+		"lodash": "^4.17.15",
+		"mysql": "^2.13.0"
+	}
+}
