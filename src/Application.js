@@ -1,7 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const ExceptionHandlerMiddleware = require('./Http/Middleware/ExceptionHandlerMiddleware');
 const createHandlerFromClass = require('./createHandlerFromClass');
+const { ApiError } = require('./Error/Api/index');
 
 class Application
 {
@@ -9,6 +9,7 @@ class Application
 		this.container = container;
 		this.config = container.config;
 		this.routes = container.routes;
+		this.logger = container.logger;
 		this.init();
 	}
 	init(){
@@ -18,13 +19,27 @@ class Application
 		this.configureErrorHandler();
 	}
 	configureErrorHandler(){
-		this.app.use((new ExceptionHandlerMiddleware(this.container)).handle);
+		this.app.use((err, req, res, next) => {
+			if (err instanceof ApiError){
+				const error = err.toJSON();
+				res.status(error.code).send({
+					code: error.errorCode,
+					message: error.message,
+				});
+			}
+			else{
+				this.logger.error('Not handled error for: ', err, err.stack);
+				res.status(500).send({
+					message: 'Unhandled error',
+					code: -1,
+				});
+			}
+		});
 	}
 	configureMiddlewares(){
 		this.config.middlewares.map(path => {
 			const middlewareClass = require(path);
-			const middlewareInstance = new middlewareClass(this.container);
-			const middleware = createHandlerFromClass(middlewareInstance);
+			const middleware = createHandlerFromClass(new middlewareClass(this.container));
 			this.app.use(middleware.handle);
 		});
 	}
@@ -52,20 +67,12 @@ class Application
 		this.app.use(bodyParser.urlencoded({ extended: true }));
 		this.app.use(bodyParser.json());
 	}
-	getRouteHandler(handler){
-		return function(req, res, next){
-			handler(req, res, next).catch(e => {
-				ExceptionHandlerMiddleware.handle(e, req, res, next);
-			});
-		}
-	}
 	addRoute(method, uri, handler){
 		this.app[method](uri, handler);
 	}
 	run(){
 		this.app.listen(this.config.port, () => {
-			// TODO : Add a logger class for this
-			console.log('listening on ', this.config.port);
+			this.logger.info('Listening on ' + this.config.port);
 		});
 	}
 }

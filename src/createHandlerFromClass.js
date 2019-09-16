@@ -13,7 +13,9 @@ const createHandlerFromClass = (classInstance) => new Proxy (classInstance, {
 				response.set('Content-Type', 'application/json');
 				if (result instanceof global.Promise) {
 					result.then(({ body, statusCode }) => response.status(statusCode).json(body))
-						.catch(e => next(e));
+						.catch(e => {
+							next(e, request, response, next);
+						});
 				} else {
 					response.status(result.statusCode).json(result.body || {});
 				}

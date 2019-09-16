@@ -3,6 +3,7 @@ function ApiError(){};
 ApiError.prototype = new Error();
 ApiError.prototype.name = 'ApiError';
 ApiError.prototype.constructor = ApiError;
+ApiError.prototype.errorCode = null;
 ApiError.RESOURCE_NOT_FOUND = 0;
 ApiError.RESOURCE_ALREADY_EXISTS = 1;
 
@@ -19,7 +20,7 @@ function createApiError(name, init) {
 
 		this.message = message;
 		this.code = code;
-		this.toJSON = () => ({ code: this.code, message: this.message, stack: this.stack });
+		this.toJSON = () => ({ code: this.code, message: this.message, stack: this.stack, errorCode: this.errorCode });
 
 		if (init) {
 			init.apply(this, [message, code, ...args]);
@@ -36,13 +37,13 @@ function createApiError(name, init) {
 module.exports.ApiError = ApiError;
 
 module.exports.ResourceNotFoundError = createApiError('ResourceNotFoundError', function(message) {
-	this.message = message || 'Resource not found';
+	this.message = 'Resource not found for ' + message || 'Resource not found';
 	this.code = 404;
 	this.errorCode = ApiError.RESOURCE_NOT_FOUND;
 });
 
 module.exports.ResourceAlreadyExistsError = createApiError('ResourceAlreadyExistsError', function(message) {
-	this.message = message || 'Resource already exists';
+	this.message = 'Resource already exists for ' + message || 'Resource already exists';
 	this.code = 419;
 	this.errorCode = ApiError.RESOURCE_ALREADY_EXISTS;
 });

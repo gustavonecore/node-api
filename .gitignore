@@ -58,3 +58,5 @@ typings/
 .env
 
 /src/Config/local.js
+
+.knexfile.js
